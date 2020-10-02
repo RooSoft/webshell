@@ -4,16 +4,16 @@ import (
 	"flag"
 	"log"
 	"net/http"
-	"webshell/lib/httpHandlers"
+	"webshell/lib/http/handlers"
 )
 
 func main() {
-	httpHandlers.RequiredPassword = flag.String("pass", "mypass", "passwd")
+	handlers.RequiredPassword = flag.String("pass", "mypass", "passwd")
 	addr := flag.String("addr", ":9090", "bind addr and port")
 
 	flag.Parse()
 
-	http.HandleFunc("/", httpHandlers.Handler)
+	http.HandleFunc("/", handlers.Handler)
 
 	log.Printf("start http server\n")
 	log.Fatal(http.ListenAndServe(*addr, nil))
