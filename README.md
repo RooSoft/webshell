@@ -1,7 +1,6 @@
 # webshell
 remote execution of shell commands with streamed output through http
 
-run http
 ```
 go get github.com/roosoft/webshell
 
