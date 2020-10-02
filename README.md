@@ -18,20 +18,3 @@ drwxrwxr-x  5 luoqeng luoqeng 4096 Jun 25 18:05 go
 hello
 
 ```
-
-run https
-```
-openssl ecparam -genkey -name secp384r1 -out server.key
-
-openssl req -new -x509 -sha256 -key server.key -out server.crt -days 3650
-
-./webshell -pass="mypass" -addr=":9090" -crt=server.crt -key=server.key
-
-curl -k -X POST -d '{"pass": "mypass", "cmd": "bash", "opt": "-c", "args": "ls -l ~; echo hello"}' https://localhost:9090
-
-```
-
-[Let's Encrypt ](https://certbot.eff.org/instructions)
-```
-sudo certbot certonly --standalone
-```
