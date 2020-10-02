@@ -3,7 +3,7 @@ webshell golang implementation
 
 run http
 ```
-go get github.com/luoqeng/webshell
+go get github.com/roosoft/webshell
 
 go build
 
