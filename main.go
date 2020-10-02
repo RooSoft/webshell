@@ -12,7 +12,7 @@ import (
 
 var pass *string
 
-type Command struct {
+type command struct {
 	Pass string
 	Cmd  string
 	Opt  string
@@ -20,7 +20,7 @@ type Command struct {
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	var req Command
+	var req command
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, err.Error(), 400)
 		return
@@ -72,19 +72,13 @@ func handler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	pass = flag.String("pass", "mypass", "passwd")
 	addr := flag.String("addr", ":9090", "bind addr and port")
-	crt := flag.String("crt", "", "cert file")
-	key := flag.String("key", "", "key file")
+
 	flag.Parse()
 
 	http.HandleFunc("/", handler)
 
-	if *crt == "" || *key == "" {
-		log.Printf("start http server\n")
-		log.Fatal(http.ListenAndServe(*addr, nil))
-	} else {
-		log.Printf("start https server\n")
-		log.Fatal(http.ListenAndServeTLS(*addr, *crt, *key, nil))
-	}
+	log.Printf("start http server\n")
+	log.Fatal(http.ListenAndServe(*addr, nil))
 }
 
 // curl -X POST -d '{"pass": "mypass", "cmd": "bash", "opt": "-c", "args": "ls -l ~; echo hello"}' http://localhost:9090
