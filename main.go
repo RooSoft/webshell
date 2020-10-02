@@ -13,7 +13,7 @@ func main() {
 
 	flag.Parse()
 
-	http.HandleFunc("/", handlers.Handler)
+	http.HandleFunc("/", handlers.ExecuteCommand)
 
 	log.Printf("start http server\n")
 	log.Fatal(http.ListenAndServe(*addr, nil))

