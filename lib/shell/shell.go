@@ -23,13 +23,6 @@ func ExecuteCommand(command, options, arguments string, w io.Writer) error {
 
 	var errStdout, errStderr error
 
-	err = cmd.Start()
-
-	if err != nil {
-		message := fmt.Sprintf("cmd.Start() failed with '%s'\n", err)
-		return errors.New(message)
-	}
-
 	go func() {
 		_, errStdout = io.Copy(w, stdoutIn)
 	}()
@@ -37,6 +30,13 @@ func ExecuteCommand(command, options, arguments string, w io.Writer) error {
 	go func() {
 		_, errStderr = io.Copy(w, stderrIn)
 	}()
+
+	err = cmd.Start()
+
+	if err != nil {
+		message := fmt.Sprintf("cmd.Start() failed with '%s'\n", err)
+		return errors.New(message)
+	}
 
 	err = cmd.Wait()
 	if err != nil {
