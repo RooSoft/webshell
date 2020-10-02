@@ -3,7 +3,9 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"flag"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -19,20 +21,29 @@ type command struct {
 	Args string
 }
 
-func handler(w http.ResponseWriter, r *http.Request) {
+func decodeRequest(r *http.Request) (command, error) {
 	var req command
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, err.Error(), 400)
-		return
+
+	err := json.NewDecoder(r.Body).Decode(&req)
+
+	if err != nil {
+		return req, errors.New("error parsing json payload")
 	}
 
-	if req.Pass != *pass {
-		http.Error(w, "pass err", 400)
-		return
+	return req, nil
+}
+
+func verifyPassword(givenPassword string, requiredPassword string) error {
+	if givenPassword != requiredPassword {
+		return errors.New("wrong password")
 	}
 
+	return nil
+}
+
+func executeCommand(command, options, arguments string, w io.Writer) error {
 	var stdoutBuf, stderrBuf bytes.Buffer
-	cmd := exec.Command(req.Cmd, req.Opt, req.Args)
+	cmd := exec.Command(command, options, arguments)
 	// cmd := exec.Command("sh", "-c", "echo stdout; echo 1>&2 stderr")
 
 	stdoutIn, _ := cmd.StdoutPipe()
@@ -42,10 +53,10 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	stdout := io.MultiWriter(w, &stdoutBuf)
 	stderr := io.MultiWriter(w, &stderrBuf)
 	err := cmd.Start()
+
 	if err != nil {
-		log.Printf("cmd.Start() failed with '%s'\n", err)
-		//r.Write()
-		return
+		message := fmt.Sprintf("cmd.Start() failed with '%s'\n", err)
+		return errors.New(message)
 	}
 
 	go func() {
@@ -58,15 +69,40 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 	err = cmd.Wait()
 	if err != nil {
-		log.Printf("cmd.Run() failed with %s\n", err)
-		return
+		message := fmt.Sprintf("cmd.Run() failed with %s\n", err)
+		return errors.New(message)
 	}
+
 	if errStdout != nil || errStderr != nil {
-		log.Printf("failed to capture stdout or stderr\n")
-		return
+		message := fmt.Sprintf("failed to capture stdout or stderr\n")
+		return errors.New(message)
 	}
 	outStr, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
 	log.Printf("\nout:\n%s\nerr:\n%s\n", outStr, errStr)
+
+	return nil
+}
+
+func handler(w http.ResponseWriter, r *http.Request) {
+	command, err := decodeRequest(r)
+
+	if err != nil {
+		http.Error(w, err.Error(), 400)
+		return
+	}
+
+	err = verifyPassword(command.Pass, *pass)
+
+	if err != nil {
+		http.Error(w, err.Error(), 400)
+		return
+	}
+
+	err = executeCommand(command.Cmd, command.Opt, command.Args, w)
+	if err != nil {
+		http.Error(w, err.Error(), 400)
+		return
+	}
 }
 
 func main() {
