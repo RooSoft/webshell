@@ -1,5 +1,5 @@
 # webshell
-webshell golang implementation
+remote execution of shell commands with streamed output through http
 
 run http
 ```
